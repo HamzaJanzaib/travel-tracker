@@ -5,6 +5,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { CronModule } from './cron/cron.module';
 import { DestinationModule } from './destination/destination.module';
 import { HealthModule } from './health/health.module';
 
@@ -20,6 +21,7 @@ import { HealthModule } from './health/health.module';
       },
     ]),
     AuthModule,
+    CronModule,
     DestinationModule,
     HealthModule,
   ],
