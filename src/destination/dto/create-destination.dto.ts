@@ -15,8 +15,4 @@ export class CreateDestinationDto {
     @IsString()
     @IsOptional()
     location?: string;
-
-    @IsInt()
-    @IsOptional()
-    userId?: number;
 }
