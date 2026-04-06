@@ -2,14 +2,18 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Prisma, User } from '../../generated/prisma/client';
 import { PrismaService } from '../prisma.service';
-import { RegisterUserDto } from './dto/create-auth.dto';
+import { RegisterUserDto } from './dto/auth-register.dto';
 import * as bcrypt from 'bcrypt';
+import { loginUserDto } from './dto/auth-signin.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService,
+    private jwtService: JwtService
+  ) { }
 
-  async register(registerUserDto: RegisterUserDto) {
+  async signup(registerUserDto: RegisterUserDto) {
     const { email, name, password } = registerUserDto;
 
     /**
@@ -48,5 +52,45 @@ export class AuthService {
      * The password field is excluded from the returned result to enhance security by preventing the hashed password from being exposed in API responses or logs. This practice helps protect user credentials and reduces the risk of unauthorized access to sensitive information.
      */
     return result;
+  }
+
+
+  async signin(loginDto: loginUserDto) {
+    const { email, password } = loginDto;
+
+    /**
+     * Check if a user with the provided email exists in the database. If no user is found, throw a ConflictException indicating that the email or password is invalid. If a user is found, compare the provided password with the stored hashed password using bcrypt's compare function. If the passwords do not match, throw a ConflictException indicating that the email or password is invalid. If the passwords match, exclude the password field from the returned user object and return the remaining user information to the caller.
+     */
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new ConflictException('Invalid email or password!');
+    }
+
+    /**
+     * Use bcrypt's compare function to compare the provided password with the stored hashed password. This function returns a boolean indicating whether the passwords match. If the passwords do not match, a ConflictException is thrown to indicate that the email or password is invalid. If the passwords match, the user object is returned with the password field excluded for security reasons.
+     */
+    const MatchPassword = await bcrypt.compare(password , user.password)
+
+    if (!MatchPassword) {
+      throw new ConflictException('Invalid email or password!');
+    }
+
+    const payload = { email: user.email, sub: user.id };
+    const token = this.jwtService.sign(payload);
+
+
+    const { password: _, ...result } = user;
+
+    return {
+      message: 'Login successful',
+      token,
+      user: result,
+    };
+
   }
 }
