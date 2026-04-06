@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { CronModule } from './cron/cron.module';
 import { DestinationModule } from './destination/destination.module';
 import { HealthModule } from './health/health.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { HealthModule } from './health/health.module';
     CronModule,
     DestinationModule,
     HealthModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [
