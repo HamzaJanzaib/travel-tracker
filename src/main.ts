@@ -4,11 +4,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    // enable CORS (Cross-Origin Resource Sharing) to allow requests from different origins
-    cors: true,
+    // enable CORS (Cross-Origin Resource Sharing) and cookies for browser clients
+    cors: {
+      origin: true,
+      credentials: true,
+    },
   });
 
   app.use(
@@ -17,6 +21,7 @@ async function bootstrap() {
       crossOriginEmbedderPolicy: false,
     }),
   );
+  app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

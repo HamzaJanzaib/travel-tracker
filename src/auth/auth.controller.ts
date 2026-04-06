@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Request, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/auth-register.dto';
 import { loginUserDto } from './dto/auth-signin.dto';
@@ -11,6 +11,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import type { Response } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -30,8 +31,20 @@ export class AuthController {
   @ApiBody({ type: loginUserDto })
   @ApiOkResponse({ description: 'Login successful' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async signin(@Body() loginDto: loginUserDto) {
-    return this.authService.signin(loginDto);
+  async signin(
+    @Body() loginDto: loginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const response = await this.authService.signin(loginDto);
+
+    res.cookie('access_token', response.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60_000,
+    });
+
+    return response;
   }
 
   @UseGuards(JwtAuthGuard)
