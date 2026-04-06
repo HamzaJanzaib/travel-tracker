@@ -1,14 +1,16 @@
 import 'dotenv/config';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import compression from 'compression';
+import { join } from 'path';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     // enable CORS (Cross-Origin Resource Sharing) and cookies for browser clients
     cors: {
       origin: true,
@@ -24,6 +26,9 @@ async function bootstrap() {
   );
   app.use(compression());
   app.use(cookieParser());
+  app.useStaticAssets(join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -40,6 +45,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('Auth')
     .addTag('Destination')
+    .addTag('Upload')
     .addBearerAuth(
       {
         type: 'http',
