@@ -5,6 +5,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,6 +22,7 @@ async function bootstrap() {
       crossOriginEmbedderPolicy: false,
     }),
   );
+  app.use(compression());
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
