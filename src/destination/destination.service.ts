@@ -40,19 +40,67 @@ export class DestinationService {
     return parsedDate;
   }
 
-  findAll() {
-    return `This action returns all destination`;
+  async findAll(userId: number) {
+    return this.prisma.destination.findMany({
+      where: {
+        userId,
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} destination`;
+  async findOne(id: number , userId: number) {
+    const destination = await this.prisma.destination.findUnique({
+      where: {
+        id,
+        userId,
+      },
+    });
+    if (!destination) {
+      throw new BadRequestException('Destination not found');
+    }
+    return destination;
   }
 
-  update(id: number, updateDestinationDto: UpdateDestinationDto) {
-    return `This action updates a #${id} destination`;
+  async update(id: number, updateDestinationDto: UpdateDestinationDto) {
+    const destination = await this.prisma.destination.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!destination) {
+      throw new BadRequestException('Destination not found');
+    }
+
+    const { travelDate, ...rest } = updateDestinationDto;
+    const data = {
+      ...rest,
+      ...(travelDate ? { travelDate: this.parseTravelDate(travelDate) } : {}),
+    };
+
+    return this.prisma.destination.update({
+      where: {
+        id,
+      },
+      data,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} destination`;
+  async remove(id: number) {
+    const destination = await this.prisma.destination.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!destination) {
+      throw new BadRequestException('Destination not found');
+    }
+
+    return this.prisma.destination.delete({
+      where: {
+        id,
+      },
+    });
   }
 }
